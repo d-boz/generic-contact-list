@@ -6,35 +6,51 @@ let SparkPost = require('sparkpost');
  * MailClient Constructor
  * 
  * @param {string} apiKey - Api Key For Sparkpost Client Submission  
+ * @param {object} userInputMap - Contains all html field injection values 
  */
-const MailClient = function(apiKey, options) {
+const MailClient = function(apiKey, userInputMap) {
     // @TODO: Move Api Key to Lambda Env or DynamoDb Table
     this.sparkClient = new SparkPost(apiKey);
+    this.userInputMap = userInputMap;
 
-    if(typeof apiKey === 'undefined')
+    if (typeof apiKey === 'undefined') {
         throw new Error('Add Api Key to MailClient...');
-}
+    }
+
+    if (typeof userInputMap === 'undefined') {
+        throw new Error('Pass hashmap for html document interpolation...');
+    }
+};
 
 /**
  * Send An Email via SparkPost
+ * 
+ * @return {object} 
  */
-MailClient.prototype.sendEmail = function() {
-    this.sparkClient.transmissions.send({
-        content: {
-            from: 'mail@mail.suitablelabs.com',
-            subject: 'Hello, World!',
-            html: '<html><body><h1> Testing</h1></body></html>',
-        },
-        recipients: [
-            { address: 'dj@suitablelabs.com' }
-        ]
-    })
-    .then((response) => {
-        console.log(response);
-    })
-    .catch((err) => {
-        console.log(err);
-    });
+MailClient.prototype.sendEmail = async function() {
+    try {
+        let rawHtmlDoc = await loadHtmlDocument('S3://');
+        let injectedHtmlDoc = interpolateDocument(
+            rawHtmlDoc, this.userInputMap
+        );
+
+        let emailOptions = {
+            content: {
+                from: 'mail@mail.suitablelabs.com',
+                subject: '',
+                html: injectedHtmlDoc,
+            },
+            recipients: {
+
+            },
+        };
+
+        let response = await this.sparkClient.transmissions.send(emailOptions);
+        return response;
+    } catch (ex) {
+        console.log(ex);
+        return {IsSuccess: false, Message: ex};
+    }
 };
 
 /**
@@ -63,8 +79,6 @@ function setS3Params(s3Path) {
         Key: s3UrlParams[2],
     };
 }
-
-function createCollection() {};
 
 /**
  * Interpolates String HTMLDocument with Collection

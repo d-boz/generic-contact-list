@@ -1,6 +1,36 @@
 let _ = require('lodash');
 
 /**
+ * Utilities function initialization 
+ * 
+ * @return {object} Utilities object
+ */
+const Utilities = function() {
+    const utilsObject = Object.create(Utilities.prototype);
+    return utilsObject;
+};
+
+/**
+ * Returns hashmap for account associated html doc interpolation
+ * 
+ * @param {object} jsonEvent - Json encoded event 
+ * @return {object} Returns Html Document 'HashMap'
+ */
+Utilities.prototype.parseBody = function(jsonEvent) {
+    let eventObject = parseJson(jsonEvent);
+    if (eventObject === 'undefined' || Object.keys(eventObject).length === 0) {
+        throw new Error('Empty Event Object...');
+    }
+
+    let eventBody = eventObject.body;
+    if (eventBody === 'undefined' || Object.keys(eventBody).length === 0) {
+        throw new Error('No Form Data Submitted...');
+    }
+
+    return htmlDocObjectFactory(eventObject);
+};
+
+/**
  * Returns json object
  * 
  * @param {string | object} json
@@ -60,35 +90,5 @@ function htmlDocObjectFactory(eventObject) {
 
     return returnObj;
 }
-
-/**
- * Utilities function initialization 
- * 
- * @return {object} Utilities object
- */
-const Utilities = function() {
-    const utilsObject = Object.create(Utilities.prototype);
-    return utilsObject;
-};
-
-/**
- * Returns hashmap for account associated html doc interpolation
- * 
- * @param {object} jsonEvent - Json encoded event 
- * @return {object} Returns Html Document 'HashMap'
- */
-Utilities.prototype.parseBody = function(jsonEvent) {
-    let eventObject = parseJson(jsonEvent);
-    if (eventObject === 'undefined' || Object.keys(eventObject).length === 0) {
-        throw new Error('Empty Event Object...');
-    }
-
-    let eventBody = eventObject.body;
-    if (eventBody === 'undefined' || Object.keys(eventBody).length === 0) {
-        throw new Error('No Form Data Submitted...');
-    }
-
-    return htmlDocObjectFactory(eventObject);
-};
 
 module.exports = Utilities;
