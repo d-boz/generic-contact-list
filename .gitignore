@@ -1,0 +1,15 @@
+# package directories
+node_modules
+jspm_packages
+
+# Serverless directories
+.serverless
+
+# Idea 
+.idea/*
+*.idea
+
+#VsCode
+.vscode
+*.vscode
+.vscode/*

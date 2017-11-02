@@ -1,0 +1,8 @@
+{
+	"ApiKey":{"S":"1234567890"},
+	"FirstName":{"S":"David"},
+	"LastName":{"S":"Bozentka"},
+	"Email":{"S":"dj@suitablelabs.com"},
+	"HtmlTemplateLocation":{"S":"https://s3.amazonaws.com/suitable-contactus-service/test.html"},
+	"WebsiteName": {"S":"suitablelabs.com"}
+}
