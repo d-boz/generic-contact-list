@@ -24,25 +24,27 @@ const MailClient = function(apiKey, userInputMap) {
 
 /**
  * Send An Email via SparkPost
- * 
+ * @param {object} authClient - 
  * @return {object} 
  */
-MailClient.prototype.sendEmail = async function() {
+MailClient.prototype.sendEmail = async function(authClient) {
     try {
-        let rawHtmlDoc = await loadHtmlDocument('S3://');
+        let rawHtmlDoc = await loadHtmlDocument(authClient.HtmlTemplateLocation);
+        rawHtmlDoc = rawHtmlDoc.Body.toString('utf-8');
+        
         let injectedHtmlDoc = interpolateDocument(
             rawHtmlDoc, this.userInputMap
         );
-
+        let recipientAddress = authClient.Email.toString();
         let emailOptions = {
             content: {
                 from: 'mail@mail.suitablelabs.com',
-                subject: '',
+                subject: 'Mail From Suitable Labs',
                 html: injectedHtmlDoc,
             },
-            recipients: {
-
-            },
+            recipients: [
+                {address: recipientAddress},
+            ],
         };
 
         let response = await this.sparkClient.transmissions.send(emailOptions);
@@ -68,13 +70,15 @@ function loadHtmlDocument(htmlDoc) {
 
 /**
  * Set S3 Parameters for GetObject
+ * 
  * @param {string} s3Path - S3 Path Extrapolate Into Bucket and Key 
  * @return {object} Params for S3 
  */
 function setS3Params(s3Path) {
     let parsedUrlObj = require('url').parse(s3Path);
     let s3UrlParams = parsedUrlObj.path.split(/^(\/[\w\-\.]+[^#?\s]+\/)/);
-    return params = {
+
+    return {
         Bucket: s3UrlParams[1].replace(/\//g, ''),
         Key: s3UrlParams[2],
     };
@@ -88,15 +92,16 @@ function setS3Params(s3Path) {
  * @return {string} - Interpolated HTML Document
  */
 function interpolateDocument(htmlDoc, collection) {
-    let documentSplit = htmlDoc.split(' ');
+    let docLines = htmlDoc.split('\n');
 
-    for (let i = 0; i < collection.length; i++) {
-        let objKey = Object.keys(collection[i]).toString();
-        let objVal = Object.values(collection[i]).toString();
-        documentSplit[objKey] = objVal;
+    // @TODO: Fix.... 
+    for(let line in docLines) {
+        for(let item in collection) {
+            docLines[line] = docLines[line].replace(item, collection[item]);
+        }
     }
 
-    return documentSplit.join(' ');
+    return docLines.join('\n');
 };
 
 module.exports = MailClient;

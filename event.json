@@ -9,5 +9,8 @@
     },
     "identity": {
         "sourceIp": "192.168.0.100"
+    },
+    "headers": {
+        "Authorization": "Basic 1234567890"
     }
 }
